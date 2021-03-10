@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from utils.evaluate import calc_acc_n_loss
 from utils.wandb_utils import wandb_log, save_model_wandb
-
+import numpy as np
+import os
 import datetime
 
 def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None):
@@ -20,8 +21,17 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
         scheduler (LR Schedular, optional): Changing learning rate according to a function. Defaults to None.
     """
     device = args.device
+    if args.class_weights is None:
+      weight = None
+    else:
+      if os.path.isfile(args.class_weights):
+          weight = torch.from_numpy(np.load(args.class_weights))
+          weight = weight.type(torch.FloatTensor).to(device)
+      else:
+          raise ValueError('Class weights file not found')
 
-    criterion = nn.CrossEntropyLoss()
+    
+    criterion = nn.CrossEntropyLoss(weight=weight)
 
     for i in range(args.epochs):
 
