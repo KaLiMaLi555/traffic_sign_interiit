@@ -22,13 +22,13 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
     """
     device = args.device
     if args.class_weights is None:
-      weight = None
+        weight = None
     else:
-      if os.path.isfile(args.class_weights):
-          weight = torch.from_numpy(np.load(args.class_weights))
-          weight = weight.type(torch.FloatTensor).to(device)
+        if os.path.isfile(args.class_weights):
+            weight = torch.from_numpy(np.load(args.class_weights))
+            weight = weight.type(torch.FloatTensor).to(device)
       else:
-          raise ValueError('Class weights file not found')
+            raise ValueError('Class weights file not found')
 
     
     criterion = nn.CrossEntropyLoss(weight=weight)
