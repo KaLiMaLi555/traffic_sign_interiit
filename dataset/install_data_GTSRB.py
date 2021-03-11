@@ -39,7 +39,7 @@ def make_dir(path):
     """
 
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
 
 Annotation = namedtuple('Annotation', ['filename', 'label'])
 def read_annotations(filename):
@@ -66,7 +66,7 @@ def read_annotations(filename):
             
     return annotations
 
-def load_training_annotations(source_path):
+def load_training_annotations(source_path, num_class):
     """ Reading train annotations for each class
 
     Args:
@@ -104,7 +104,7 @@ def copy_files(label, filenames, source, destination, move=False):
         if not os.path.exists(destination_path):
             func(os.path.join(source, format(label, '05d'), filename), destination_path)
 
-def split_train_validation_sets(source_path, train_path, validation_path, all_path, validation_fraction=0.2):
+def split_train_validation_sets(source_path, train_path, validation_path, all_path, num_class, validation_fraction=0.2):
     """ Spliting the Train folder into train and valid
 
     Args:
@@ -115,16 +115,13 @@ def split_train_validation_sets(source_path, train_path, validation_path, all_pa
         validation_fraction (float, optional): Split fraction . Defaults to 0.2.
     """
     
-    if not os.path.exists(train_path):
-        os.makedirs(train_path)
+    make_dir(train_path)
         
-    if not os.path.exists(validation_path):
-        os.makedirs(validation_path)
+    make_dir(validation_path)
         
-    if not os.path.exists(all_path):
-        os.makedirs(all_path)
+    make_dir(all_path)
     
-    annotations = load_training_annotations(source_path)
+    annotations = load_training_annotations(source_path, num_class)
     filenames = defaultdict(list)
     for annotation in annotations:
         filenames[annotation.label].append(annotation.filename)
@@ -149,7 +146,7 @@ def prepare_test():
     os.system('mv GTSRB/Final_Test/Images/*.ppm GTSRB/test')
     os.system('mv GTSRB/Final_Test/GT-final_test.csv GTSRB/test/.')
 
-def prepare_train_n_val(validation_fraction=0.2):
+def prepare_train_n_val(validation_fraction=0.2, num_class=43):
     """ Prepare Train/Valid from raw dataset
 
     Args:
@@ -161,10 +158,11 @@ def prepare_train_n_val(validation_fraction=0.2):
     train_path = os.path.join(path, 'train')
     validation_path = os.path.join(path, 'valid')
     all_path = os.path.join(path, 'all')
-    split_train_validation_sets(source_path, train_path, validation_path, all_path, validation_fraction)
+    split_train_validation_sets(source_path, train_path, validation_path, all_path, num_class, validation_fraction)
 
 
 if __name__ == "__main__":
+    num_class = 43  # Change this if classes change
     download_gtsrb()
     prepare_test()
-    prepare_train_n_val(validation_fraction=0.2)
+    prepare_train_n_val(validation_fraction=0.2, num_class=num_class)
