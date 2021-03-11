@@ -33,7 +33,7 @@ def create_class_weight_average(labels_dict):
     class_weight = []
 
     for key in keys:
-        score = labels_dict[key] * len(keys) / total
+        score = total/(labels_dict[key] * len(keys))
         score = score if score > 1.0 else 1.0
         class_weight.append(score)
 
