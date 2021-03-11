@@ -9,6 +9,7 @@ import numpy as np
 import os
 import datetime
 
+
 def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None):
     """ Generic Train function for training
 
@@ -29,7 +30,6 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
             weight = weight.type(torch.FloatTensor).to(device)
         else:
             raise ValueError('Class weights file not found')
-
 
     criterion = nn.CrossEntropyLoss(weight=weight)
 
@@ -68,17 +68,26 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
             print('Taking snapshot ...')
             if not os.path.exists(args.snapshot_dir):
                 os.makedirs(args.snapshot_dir)
-            save_path = os.path.join(args.snapshot_dir, f'{args.model}_{i+1}.pth')
+            save_path = os.path.join(
+                args.snapshot_dir, f'{args.model}_{i+1}.pth')
             torch.save(model.state_dict(), save_path)
             save_model_wandb(save_path)
 
         wandb_log(train_loss/len(trainloader), val_loss, val_acc, i)
 
-    t = datetime.datetime.now()
-    name = f'opt_{args.model}_{t.year}-{t.month}-{t.day}_{t.hour}-{t.minute}.pth'
+    model.eval()
+    batch_size = 1
+    inputs = torch.randn(
+        batch_size, 3, args.size[0], args.size[1], requires_grad=True).to(device)
 
+    t = datetime.datetime.now()
+    name = f'opt_{args.model}_{t.year}-{t.month}-{t.day}_{t.hour}-{t.minute}.onnx'
     save_path = os.path.join(args.snapshot_dir, name)
-    torch.save(model.state_dict(), save_path)
+
+    # Export the model
+    torch.onnx.export(model, inputs, save_path, export_params=True, input_names=['input'], output_names=[
+                      'output'], dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
+
     save_model_wandb(save_path)
 
     return model
