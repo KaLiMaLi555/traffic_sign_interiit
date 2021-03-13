@@ -59,7 +59,7 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
             print('\nCurrent Learning Rate =', curr_lr)
 
         print('\nValidating ...')
-        val_acc, val_loss = calc_acc_n_loss(args, model, valloader)
+        val_acc, val_loss = calc_acc_n_loss(args, model, valloader, False)
         print(f'Valid Accuracy = {val_acc} %')
         print('Valid loss =', val_loss)
         print('-'*50)
@@ -75,19 +75,11 @@ def train_engine(args, trainloader, valloader, model, optimizer, scheduler=None)
 
         wandb_log(train_loss/len(trainloader), val_loss, val_acc, i)
 
-    model.eval()
-    batch_size = 1
-    inputs = torch.randn(
-        batch_size, 3, args.size[0], args.size[1], requires_grad=True).to(device)
-
     t = datetime.datetime.now()
-    name = f'opt_{args.model}_{t.year}-{t.month}-{t.day}_{t.hour}-{t.minute}.onnx'
+    name = f'opt_{args.model}_{t.year}-{t.month}-{t.day}_{t.hour}-{t.minute}.pth'
+
     save_path = os.path.join(args.snapshot_dir, name)
-
-    # Export the model
-    torch.onnx.export(model, inputs, save_path, export_params=True, input_names=['input'], output_names=[
-                      'output'], dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
-
+    torch.save(model.state_dict(), save_path)
     save_model_wandb(save_path)
 
     return model

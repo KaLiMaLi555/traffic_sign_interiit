@@ -1,5 +1,7 @@
 import wandb
 import os
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 
 def init_wandb(model, args=None) -> None:
@@ -29,12 +31,29 @@ def wandb_log(train_loss: float, val_loss: float, val_acc: float, epoch: int):
         'Validation Accuracy': val_acc
     })
 
+
 def wandb_save_summary(test_acc: float):
-    """ 
+    """
     Saves Test accuracy in wandb
     """
 
     wandb.run.summary["test_accuracy"] = test_acc
+
+
+def wandb_log_conf_matrix(y_true: list, y_pred: list):
+    """Logs the confusion matrix
+
+    Args:
+        y_true (list): ground truth labels
+        y_pred (list): predicted labels
+    """
+
+    wandb.log({"conf_mat": wandb.plot.confusion_matrix(
+        probs=None,
+        y_true=y_true,
+        preds=y_pred
+    )})
+
 
 def save_model_wandb(save_path):
     """ Saves model to wandb

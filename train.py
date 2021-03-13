@@ -25,7 +25,7 @@ init_wandb(net, args)
 train_engine(args=args, trainloader=trainloader,
              valloader=valloader, model=net, optimizer=optimizer, scheduler=schedular)
 
-test_acc, test_loss = calc_acc_n_loss(args, net, testloader)
+test_acc, test_loss = calc_acc_n_loss(args, net, testloader, True)
 
 print('Test Accuracy =', test_acc)
 print('Test Loss =', test_loss)
