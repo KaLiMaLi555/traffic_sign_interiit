@@ -26,8 +26,9 @@ def get_loader(args, dataset):
         'shuffle': True
     }
 
-    trainloader = DataLoader(dataset, **params)
-    return trainloader
+    dataloader = DataLoader(dataset, **params)
+    return dataloader
+
 
 
 def get_train_tuple(train_path):
@@ -136,17 +137,14 @@ class GTSRB(Dataset):
         """
 
 
-        res = transforms.Resize(self.size)
         image = cv2.resize(image, self.size)
-        # image = load_augments(config_path=self.args.config_path)(image=image),
+        image = load_augments(config_path=self.args.config_path, rand=True)(image=image)
         tran_train = transforms.Compose([
-                                    # load_augments(config_path=self.args.config_path).augment_image,
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.3337, 0.3064, 0.3171),
                                                         (0.2672, 0.2564, 0.2629))
                                    ])
         tran_test = transforms.Compose([
-                # transforms.Resize(self.size),
                 transforms.ToTensor(),
                 transforms.Normalize((0.3337, 0.3064, 0.3171),
                                     (0.2672, 0.2564, 0.2629))
