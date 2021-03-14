@@ -48,7 +48,7 @@ def wandb_log_conf_matrix(y_true: list, y_pred: list):
         y_pred (list): predicted labels
     """
     num_classes = len(set(y_true))
-    wandb.log({'confusion_matrix': wandb.plots.HeatMap(list(np.arange(0,num_classes)), list(np.arange(0,num_classes)), confusion_matrix(y_true,y_pred,normalize=True), show_text=True)})
+    wandb.log({'confusion_matrix': wandb.plots.HeatMap(list(np.arange(0,num_classes)), list(np.arange(0,num_classes)), confusion_matrix(y_true,y_pred,normalize="true"), show_text=True)})
 
 
 def save_model_wandb(save_path):
