@@ -6,7 +6,9 @@ import torch
 import torch.nn as nn
 import json 
 from utils.wandb_utils import wandb_log_conf_matrix
-from sklearn.metrics import f1_score,multilabel_confusion_matrix,recall_score,precision_score
+from sklearn.metrics import f1_score, multilabel_confusion_matrix, recall_score, precision_score, classification_report
+
+
 def calc_acc_n_loss(args, model, loader, log_matrix=False):
     """ Function to calculate the Accuracy and Loss given a loader
     Args:
@@ -45,6 +47,8 @@ def calc_acc_n_loss(args, model, loader, log_matrix=False):
     cm=multilabel_confusion_matrix(y_true,y_pred).tolist()
     precision=precision_score(y_true,y_pred,average='weighted')
     recall=recall_score(y_true,y_pred,average='weighted')
+
+    print(classification_report(y_true, y_pred))
 
     if log_matrix == True:
         wandb_log_conf_matrix(y_true, y_pred)
