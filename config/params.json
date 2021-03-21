@@ -4,9 +4,9 @@
 	    "device": "cpu",
 	    "snapshot_dir": "checkpoints/logs",
 	    "data_dir": "dataset/GTSRB",
-        "extra_path": null,
+        "extra_path": "dataset/TSINGHUA_EXTRA",
 	    "size": [48,48],
-	    "batch_size": 128,
+	    "batch_size": 64,
 	    "epochs": 100,
 	    "epochs_stop": 100,
 	    "num_workers": 4,
@@ -14,14 +14,14 @@
 	    "momentum": 0.9,
 	    "weight_decay": 5e-4,
 	    "power": 0.9,
-	    "num_classes": 43,
+	    "num_classes": 48,
 	    "init_weights":null,
-	    "restore_from":null,
+	    "restore_from": "checkpoints/models/final_micronet_iter3.pt",
 	    "save_pred_every": 5,
 	    "print_freq": 5,
-	    "wandb_api_key": null,
-        "wandb_name": null,
-	    "wandb_id": null,
+	    "wandb_api_key": "8139e1f24f0baa26e2118895f9a475ad231167ea",
+        "wandb_name": "MicroNet-Tsinghwa-iter-exp3-without-dropout",
+	    "wandb_id": "kalimali3",
 	    "class_weights":null,
 	    "lr_decay_step": 5,
 	    "seed": 42
@@ -29,24 +29,21 @@
     "augmentations": {
         "Use": {
             "Fog": true,
-            "Snowflakes": true,
+            "Snow": true,
             "GaussianNoise": true,
             "Rain": true,
-            "FastSnowyLandscape": true,
-            "JpegCompression": true,
-            "CoarsePepper": true,
-            "Invert": true
+            "SaltandPepper": true,
+            "MotionBlur": true,
+            "ZoomBlur": true,
+            "Splatter": true,
+            "Rotate": true,
+            "Cutout": true,
+            "ColorTemperature": true,
+            "Brightness": true
         },
         "Fog": {},
-        "Snowflakes": {
-            "flake_size": [
-                0.1,
-                0.4
-            ],
-            "speed": [
-                0.01,
-                0.05
-            ]
+        "Snow": {
+            "severity": [1, 2]
         },
         "GaussianNoise": {
             "severity": 2
@@ -57,33 +54,24 @@
                 0.3
             ]
         },
-        "FastSnowyLandscape": {
-            "lightness_threshold": [
-                100,
-                255
-            ],
-            "lightness_multiplier": [
-                1.0,
-                4.0
-            ]
+        "SaltandPepper": {
+            "p": 0.2,
+            "per_channel": true
         },
-        "JpegCompression": {
-            "compression": [
-                70,
-                99
-            ]
+        "Brightness": {
+            "add":[-30, 30]
         },
-        "CoarsePepper": {
-            "p": 0.25,
-            "size_percent": [
-                0.01,
-                0.1
-            ]
+        "Cutout": {
+            "nb_iterations": [1, 2],
+            "size": 0.2
         },
-        "Invert": {
-            "p": 0.25,
-            "per_channel": 0.5
+        "MotionBlur": {"k": 15,
+        "angle": [-20, -10, 0, 10, 20]  
         },
+        "ZoomBlur": {"severity": 2},
+        "ColorTemperature": {"kelvin": [1100, 10000]},
+        "Rotate": {"rotate": [-30, 30]},
+        "Splatter": {"severity": 2},
         "probability": 0.3
     }
 }

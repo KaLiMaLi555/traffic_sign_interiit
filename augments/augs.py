@@ -9,13 +9,17 @@ Add the function call when adding new augmentations
 """
 augments = {
         "Fog": iaa.weather.Fog,
-        "Snowflakes": iaa.Snowflakes,
+        "Snow": iaa.imgcorruptlike.Snow,
         "GaussianNoise": iaa.imgcorruptlike.GaussianNoise,
         "Rain": iaa.Rain,
-        "FastSnowyLandscape": iaa.FastSnowyLandscape,
-        "JpegCompression": iaa.JpegCompression,
-        "CoarsePepper": iaa.CoarsePepper,
-        "Invert": iaa.Invert
+        "SaltandPepper": iaa.SaltAndPepper,
+        "MotionBlur": iaa.MotionBlur,
+        "ZoomBlur": iaa.imgcorruptlike.ZoomBlur,
+        "Splatter": iaa.imgcorruptlike.Spatter,
+        "Rotate": iaa.Rotate,
+        "Cutout": iaa.Cutout,
+        "ColorTemperature": iaa.ChangeColorTemperature,
+        "Brightness": iaa.AddToBrightness
         }
 
 
