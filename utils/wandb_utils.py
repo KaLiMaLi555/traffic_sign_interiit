@@ -15,6 +15,7 @@ def init_wandb(model, args=None) -> None:
         name=args.wandb_name,
         project="traffic-sign",
         id=args.wandb_id,
+        resume=True,
         dir="./",
     )
     if args:
