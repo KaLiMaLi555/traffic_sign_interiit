@@ -44,7 +44,7 @@ def create_class_weight_log(labels_dict,mu=0.15):
     """
 
     total = np.sum(list(labels_dict.values()))
-    keys = labels_dict.keys()
+    keys = sorted(labels_dict.keys())
     class_weight = []
 
     for key in keys:
@@ -65,7 +65,7 @@ def create_class_weight_average(labels_dict):
     """
 
     total = np.sum(list(labels_dict.values()))
-    keys = labels_dict.keys()
+    keys = sorted(labels_dict.keys())
     class_weight = []
 
     for key in keys:
