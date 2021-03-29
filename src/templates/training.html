@@ -1,0 +1,569 @@
+{% extends "basetemplate.html" %}
+
+{% block title %}Train and Test Model {% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.css') }}">
+<style>
+    div.dataTables_wrapper div.dataTables_length select {
+        width: 100%;
+    }
+    .hide {
+        display: none;
+    }
+    .disp {
+        display: block;
+    }
+    </style>
+{% endblock %}
+{% block ptitle %}Train and Test Model{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-xl-6 col-md-6 mb-4">
+        <h2>Train Model</h2>
+        <form id="form1">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text bg-primary text-white" for="Model"> Model :</label>
+                </div>
+                <input  id="Model" value="MicronNet" class="form-control" required disabled>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text bg-primary text-white" for="num_classes">Select Classes :</label>
+                </div>
+                <div class="col border rounded-right" id="classes">
+                    {% for class in self_classes %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="{{class}}" id="{{class}}" name="self-classes">
+                        <label class="form-check-label" for="{{class}}">
+                            {{ class }} 
+                        </label>
+                    </div>  
+                    {% endfor %}
+                 </div>      
+            </div>
+        </form>
+    </div>
+    <div class="col-xl-6 col-md-6 mb-4">
+        <br><br>
+        <form id="form2">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text bg-primary text-white" for="batch_size">Batch Size :</label>
+                </div>
+                <select class="custom-select" required id="batch_size">
+                    <option value="" selected>Choose...</option>
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                    <option value="128">128</option>
+                </select>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text bg-primary text-white" for="epochs">Epochs :</label>
+                </div>
+                <select class="custom-select" required id="epochs">
+                    <option value="" selected>Choose...</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text bg-primary text-white" for="lr">Learning Rate :</label>
+                </div>
+                <input type="number" name="lr" id="lr" placeholder=">0" class="form-control" min="0" value="0.01" step="0.01" required>
+            </div>
+            
+        </form>
+        <div class="toast" data-delay="5000" style="top: 5px; right: 15px;">
+            <div class="toast-header">
+                <strong class="mr-auto text-danger">Form Submission Error</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>
+            </div>
+            <div class="toast-body">
+        
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+    <input type="submit" value="Train Model" onclick="submitform()" onsubmit="" onclick="" class="btn btn-success">
+</div>
+
+<br>
+<div class="row">
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4" id="train_table" style="display: none;">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered display" data-page-length='10' id="trainTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <td id="epoch_num"></td>
+                                <td class="font-weight-bold">Accuracy</td>
+                                <td class="font-weight-bold">Loss</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-weight-bold">Train</td>
+                                <td id="alpha"></td>
+                                <td id="beta"></td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold">Validation</td>
+                                <td id="alpha0"></td>
+                                <td id="beta0"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-lg-6">
+        <div id="msg" class="mt-4"></div>
+    </div>
+    <br>
+</div>
+<br>
+<hr>
+<div class="row">
+    <div class="col-xl-12">
+        <h2>Test Model</h2>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text bg-primary text-white" for="test">Select Pre-Trained Model :</label>
+            </div>
+            <select class="custom-select" required id="test">
+                {% for model in pretrained_models %}
+                    <option value="{{model[0]}}">{{model[1]}}</option>
+                {% endfor %}
+            </select>
+            <button style="display: inline-block;" type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">
+                Test Model
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Test Model</h5>
+                        <button type="button" id="close_modal" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="flex"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success mr-auto" onclick="test(); ">Test using dataset</button>
+                        <label for="uploadTestImage" class="btn btn-primary form-label m-0" style="cursor: pointer;">Test on a custom image</label>
+                        <input type="file" accept="image/*" id="uploadTestImage" style="display: none;">
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div style="display: inline-block;">
+                
+            </div>
+        </div>
+    </div>    
+</div>
+<div style="display: none;" class="row" id="loader">
+    <div class="col-xl-12 col-md-12 mb-4">
+        <h5 class="text-center">Testing..</h5>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="text-center hide mt-4" id="resultmsg">
+            <figure class="figure">
+                <img class="figure-img img-fluid border rounded" id="testImage" style="width: 200px; max-height: 200px">
+                <figcaption id="result" style="font-size: 20px;" class="figure-caption text-center font-weigth-bold "></figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="text-center mt-4" id="riseImage">
+        
+        </div>
+    </div>
+</div>
+
+
+<div class="card shadow" style="display: none;" id="chart">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Classification</h6>
+    </div>
+    <div class="card-body">
+        <div class="chart-bar" id="chart_div">
+            <canvas id="myBarChart" style="height: 450px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="test_table" style="display: none;" class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered display" data-page-length='10' id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <td class="font-weight-bold">Model</td>
+                        <td class="font-weight-bold">Test Accuracy</td>
+                        <td class="font-weight-bold">Test Loss</td>
+                        <td class="font-weight-bold">F1 Score</td>
+                        <td class="font-weight-bold">Precision</td>
+                        <td class="font-weight-bold">Recall</td>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/coreui-chartjs.bundle.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script>
+    // document.onload(fetch_text_file())
+    $("#training-sidebar").addClass('active');
+
+    $.extend( $.fn.dataTable.defaults, {
+        searching: false,
+        ordering:  false
+    } );
+ 
+
+    window.onload = function fetch_text_file()
+    {
+        fetch('/training/send_file', {
+            method: 'GET',
+            credentials: "include",
+            cache: "no-cache",
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(result => {
+            console.log(result);
+            let msg = document.querySelector('#msg');
+            if(result.status != 200)
+            {
+                msg.innerHTML = result.body.error;
+                msg.style.color = "red";
+            }
+            else
+            {
+                if(result.body.perc.length==3)
+                {
+                    msg.innerHTML = `<span class="text-primary font-weight-bold">Epochs: </span>`+ result.body.perc[0] + "/" + result.body.perc[2] + `<br><br> <div class="progress bg-dark">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">${result.body.perc[1]}%</div></div>`;
+                    msg.style.color = "green";
+                }
+                else if(result.body.perc.length==4)
+                {
+                    document.getElementById("train_table").style.display = "block";
+
+                    if(result.body.perc[0] == "TrainAccuracy")
+                    {
+                        document.getElementById("alpha").innerHTML =  result.body.perc[1];
+                        document.getElementById("beta").innerHTML =  result.body.perc[2];
+                        document.getElementById("alpha0").innerHTML =  "Validating..";
+                        document.getElementById("beta0").innerHTML =  "Validating..";
+                        document.getElementById("epoch_num").innerHTML = `Epoch = ${result.body.perc[3]}-1`; 
+                    }
+                    else if(result.body.perc[0] == "Validating")
+                    {
+                        document.getElementById("alpha0").innerHTML =  result.body.perc[1];
+                        document.getElementById("beta0").innerHTML =  result.body.perc[2];
+                        document.getElementById("epoch_num").innerHTML = `Epoch = ${result.body.perc[3]}-1`; 
+                    }
+                }
+                
+            }
+        });
+        setTimeout(fetch_text_file, 3000)
+    }
+
+    function submitform()
+    {
+        var Obj = [];
+        Obj[0] = document.querySelector('#Model');
+        Obj[1] = document.querySelector('#batch_size');
+        Obj[2] = document.querySelector('#epochs');
+        Obj[3] = document.querySelector('#lr');
+
+        var elems = document.querySelectorAll('[name="self-classes"]');
+        var checked_classes = [];
+
+        for(var i=0; i<elems.length; i++)
+        {
+            if(elems[i].checked)
+            {
+                checked_classes.push(i);
+            }
+        }
+
+        for(var i=0; i<4; i++)
+        {
+            if(!Obj[i].checkValidity()) 
+            {   
+                for(var j=0; j<4; j++)
+                {
+                    document.querySelector(`#${Obj[j].id}`).classList.remove("border-danger");
+                }
+                document.querySelector(`#${Obj[i].id}`).classList.add("border-danger");
+                $('.toast').toast('show'); 
+                document.querySelector(".toast-body").innerHTML = Obj[i].validationMessage; 
+                return false;
+            } 
+        }
+
+        for(var j=0; j<4; j++)
+        {
+            document.querySelector(`#${Obj[j].id}`).classList.remove("border-danger");
+        }
+        document.querySelector("#classes").classList.remove("border-danger");
+
+        msg.innerHTML = "Training is about to start. Please wait."
+        fetch('/training/train', {
+            method: 'POST',
+            credentials: "include",
+            body: JSON.stringify({
+                model: "micronet",
+                num_classes: checked_classes.length,
+                class_ids: checked_classes,
+                batch_size: Obj[1].value,
+                epochs: Obj[2].value,
+                learning_rate: Obj[3].value
+            }),
+            cache: "no-cache",
+            headers: new Headers(
+            {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            })
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(result => {
+            console.log(result);
+            let msg = document.querySelector('#msg');
+            if(result.status != 200)
+            {
+                msg.innerHTML = result.body.error;
+                msg.style.color = "red";
+            }
+            else
+            {
+                msg.innerHTML = result.body.message;
+                msg.style.color = "green";
+            }
+        });
+    }
+
+    function test()
+    {
+        $("#testImage").attr('src', "");
+        document.getElementById("riseImage").innerHTML = "";
+        var chart_div = document.getElementById("chart_div");
+        $("canvas#myBarChart").remove();
+        chart_div.innerHTML = `<canvas id="myBarChart" style="height: 300px;"></canvas>`;
+
+        document.getElementById("test_table").style.display = "none";
+        document.getElementById("loader").style.display = "block";
+        document.getElementById("chart").style.display = "none";
+        document.getElementById("close_modal").click();
+        document.querySelector('#result').innerHTML = "";
+
+        var drop_down = document.getElementById("test");
+        var model = drop_down.value;
+        fetch('training/test', {
+            method: 'POST',
+            credentials: "include",
+            body: JSON.stringify({
+                pre_trained_model: model,
+            }),
+            cache: "no-cache",
+            headers: new Headers(
+            {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            })
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(result => {
+            console.log(result);
+            let msg = document.querySelector('#msg');
+            if(result.status != 200)
+            {
+                msg.innerHTML = result.body.error;
+                msg.style.color = "red";
+            }
+            else
+            {
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("test_table").style.display = "block";
+                var stuff = [
+                    [
+                        model,
+                        result.body.data[0],
+                        result.body.data[1],
+                        result.body.data[2],
+                        result.body.data[3],
+                        result.body.data[4]
+                    ]
+                ]
+
+                $('#dataTable').DataTable({
+                    destroy: true,
+                    "paging": false,
+                    "bInfo" : false,
+                    data: stuff
+                });
+                
+            }
+        });
+
+
+    }
+
+    $("#uploadTestImage").on('change', function () {
+
+        $("#testImage").attr('src', "");
+        document.getElementById("riseImage").innerHTML = "";
+        var chart_div = document.getElementById("chart_div");
+        $("canvas#myBarChart").remove();
+        chart_div.innerHTML = `<canvas id="myBarChart" style="height: 300px;"></canvas>`;
+        document.getElementById("test_table").style.display = "none";
+        document.getElementById("chart").style.display = "none";
+        document.getElementById("close_modal").click();
+        document.getElementById("loader").style.display = "block";
+        document.querySelector('#result').innerHTML = "";
+
+        var drop_down = document.getElementById("test");
+        var model = drop_down.value;
+        filelist = $(this)[0].files;
+        if (filelist.length > 0) {
+            data = new FormData();
+            data.append('file', filelist[0]);
+            data.append('model_name', model);
+            fetch('/testmodel/uploadimage', {
+                method: 'POST',
+                credentials: "include",
+                body: data,
+                cache: "no-cache",
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(result => {
+                console.log(result);
+                let msg = document.querySelector('#resultmsg');
+                resultp = document.querySelector('#result');
+                document.getElementById("loader").style.display = "none";
+                $("#testImage").attr('src', "static/images/temps/upload_test.png?" + new Date().getTime());
+                document.getElementById("riseImage").innerHTML = `<figure class="figure">
+                    <img src="static/images/temps/rise.jpg?${new Date().getTime()}" class="figure-img img-fluid border rounded" id="risemap" style="width: 200px; max-height: 200px">
+                <figcaption style="font-size: 20px;" class="figure-caption text-center font-weigth-bold ">Rise Map</figcaption>
+            </figure>`;
+                if (result.status != 200) {
+                    msg.innerHTML = `*${result.body.error}`;
+                    msg.style.color = "red";
+                }
+                resultp.innerHTML = `The predicted class is ${result.body.message}`;
+                console.log(result.body.data[0].length);
+                document.getElementById("chart").style.display = "block";
+                var class_ids = result.body.classes;
+                var sum= 0;
+                for(var i=0; i<result.body.data[0].length; i++)
+                {
+                    result.body.data[0][i] = Math.exp(result.body.data[0][i]);
+                    sum += result.body.data[0][i];
+                }
+                console.log(sum);
+
+                var ctx = document.getElementById("myBarChart").getContext("2d");
+                var stackedBar = new Chart(ctx,{
+                    type: 'bar',
+                    data: {
+                        labels: class_ids,
+                        datasets: [{
+                            label: "Probability",
+                            backgroundColor: "#1d8cf8", // blue color
+                            hoverBackgroundColor: "#2e59d9",
+                            maxBarThickness: 10,
+                            data: result.body.data[0],
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            xAxes: [{
+                                stacked : false,
+                                gridLines: {
+                                    display: true,
+                                    drawBorder: true
+                                },
+                                ticks: {
+                                    maxTicksLimit: 55
+                                }
+                            }],
+                            yAxes: [{
+                                stacked : false,
+                                ticks: {
+                                    min: 0,
+                                    max: 1,
+                                    maxTicksLimit: 10,
+                                    padding: 10,
+                                },
+                                gridLines: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: true,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
+                            }],
+                        },
+                        legend: {
+                            display: true
+                        },
+                        tooltips: {
+                            titleFontSize: 14,
+                            xPadding: 15,
+                            yPadding: 15,
+                            displayColors: false,
+                            caretPadding: 10,
+                        },
+                    }
+                });
+                
+            });
+            $(this).val(null);
+            $("#resultmsg").removeClass("hide");
+            $("#resultmsg").addClass("disp");
+        }
+    });
+</script>
+{% endblock %}
